@@ -1,5 +1,11 @@
 package gridMap
 
+import (
+	"time"
+
+	"github.com/MaciejSzaflik/traffic/noise"
+)
+
 type Color struct {
 	r, g, b float32
 }
@@ -8,6 +14,7 @@ type GridMap struct {
 	Vertices         []float32
 	Indices          []uint32
 	backgroundColors []Color
+	groundValues     []float32
 	Occupation       []int
 	VerticesCount    int32
 	Count            int
@@ -23,10 +30,19 @@ func NewGridMap(vertDistanceSize float32, count int) *GridMap {
 		backgroundColors: make([]Color, count*count),
 		Occupation:       make([]int, count*count),
 	}
-
+	gridMap.backgroundFromPerlin()
 	gridMap.generateVertices()
 
 	return gridMap
+}
+
+func (gm *GridMap) backgroundFromPerlin() {
+	gen := noise.NewNoiseGenerator(int(time.Now().Unix()))
+	gm.groundValues = gen.PerlinArray(gm.Count, gm.Count, 6, 8)
+	for i := range gm.groundValues {
+		gm.groundValues[i] *= 0.5
+		gm.backgroundColors[i] = Color{gm.groundValues[i], gm.groundValues[i], gm.groundValues[i]}
+	}
 }
 
 func (gm *GridMap) IncSpaceOccupaid(x, y int) {
@@ -53,9 +69,8 @@ func (gm *GridMap) MoveToXYIfAllowed(x, y int, t *Traveler) {
 
 func (gm *GridMap) MoveToXY(x, y int, agent *Agent) {
 	index := agent.Pos.X*gm.Count + agent.Pos.Y
-	gm.backgroundColors[index].r += 0.01
-	gm.backgroundColors[index].g += 0.01
-	gm.backgroundColors[index].b += 0.01
+	gm.groundValues[index] += 0.01
+	gm.backgroundColors[index] = Color{gm.groundValues[index], gm.groundValues[index], gm.groundValues[index]}
 
 	c := gm.backgroundColors[index]
 	gm.DecSpaceOccupaidIndex(index)
@@ -119,28 +134,26 @@ func (gm *GridMap) generateVertices() {
 			index := i*gm.Count + j
 			fi := float32(i)*gm.vertDistanceSize + start
 			fj := float32(j)*gm.vertDistanceSize + start
-			c := float32(0.0)
+			c := gm.backgroundColors[index]
 			i32 := uint32(index)*3 + uint32(index)
 			gm.Vertices = append(gm.Vertices, []float32{
 				fi, gm.vertDistanceSize + fj, 0.0,
-				c, c, c,
+				c.r, c.g, c.b,
 
 				gm.vertDistanceSize + fi, fj, 0.0,
-				c, c, c,
+				c.r, c.g, c.b,
 
 				fi, fj, 0.0,
-				c, c, c,
+				c.r, c.g, c.b,
 
 				gm.vertDistanceSize + fi, gm.vertDistanceSize + fj, 0.0,
-				c, c, c,
+				c.r, c.g, c.b,
 			}...)
 
 			gm.Indices = append(gm.Indices, []uint32{
 				i32, 1 + i32, 2 + i32,
 				i32, 1 + i32, 3 + i32,
 			}...)
-
-			gm.backgroundColors[index] = Color{c, c, c}
 		}
 	}
 }

@@ -140,7 +140,7 @@ func programLoop(window *glfw.Window) error {
 
 	fpsCounter := NewFpsCounter(100)
 
-	agentDirector := gridMap.NewAgentDirectorRandom(grid, 4000, 100)
+	agentDirector := gridMap.NewAgentDirectorRandom(grid, 1000, 100)
 	mainLoop.addUpdater(agentDirector.Update)
 
 	mainLoop.addUpdater(fpsCounter.update)

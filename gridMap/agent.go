@@ -1,6 +1,7 @@
 package gridMap
 
 import (
+	"math"
 	"math/rand"
 	"time"
 
@@ -18,6 +19,8 @@ const (
 	DownLeft
 	DownRight
 )
+
+const maxFloat32 = float32(math.MaxFloat32)
 
 type PointXY struct {
 	X, Y int
@@ -104,17 +107,17 @@ func (ad *AgentDirector) Update(d time.Duration) {
 			continue
 		}
 
-		switch smallMath.Min(
-			DistancePos(traveler.a.Pos.X, traveler.GoalPos.X, traveler.a.Pos.Y+1, traveler.GoalPos.Y),
-			DistancePos(traveler.a.Pos.X, traveler.GoalPos.X, traveler.a.Pos.Y-1, traveler.GoalPos.Y),
-			DistancePos(traveler.a.Pos.X-1, traveler.GoalPos.X, traveler.a.Pos.Y, traveler.GoalPos.Y),
-			DistancePos(traveler.a.Pos.X+1, traveler.GoalPos.X, traveler.a.Pos.Y, traveler.GoalPos.Y),
+		switch _, min := smallMath.MinFloat(
+			DistanceMul(traveler.a.Pos.X, traveler.GoalPos.X, traveler.a.Pos.Y+1, traveler.GoalPos.Y, ad.GridMap),
+			DistanceMul(traveler.a.Pos.X, traveler.GoalPos.X, traveler.a.Pos.Y-1, traveler.GoalPos.Y, ad.GridMap),
+			DistanceMul(traveler.a.Pos.X-1, traveler.GoalPos.X, traveler.a.Pos.Y, traveler.GoalPos.Y, ad.GridMap),
+			DistanceMul(traveler.a.Pos.X+1, traveler.GoalPos.X, traveler.a.Pos.Y, traveler.GoalPos.Y, ad.GridMap),
 
-			DistancePos(traveler.a.Pos.X-1, traveler.GoalPos.X, traveler.a.Pos.Y+1, traveler.GoalPos.Y),
-			DistancePos(traveler.a.Pos.X+1, traveler.GoalPos.X, traveler.a.Pos.Y+1, traveler.GoalPos.Y),
-			DistancePos(traveler.a.Pos.X-1, traveler.GoalPos.X, traveler.a.Pos.Y-1, traveler.GoalPos.Y),
-			DistancePos(traveler.a.Pos.X+1, traveler.GoalPos.X, traveler.a.Pos.Y-1, traveler.GoalPos.Y),
-		) {
+			DistanceMul(traveler.a.Pos.X-1, traveler.GoalPos.X, traveler.a.Pos.Y+1, traveler.GoalPos.Y, ad.GridMap),
+			DistanceMul(traveler.a.Pos.X+1, traveler.GoalPos.X, traveler.a.Pos.Y+1, traveler.GoalPos.Y, ad.GridMap),
+			DistanceMul(traveler.a.Pos.X-1, traveler.GoalPos.X, traveler.a.Pos.Y-1, traveler.GoalPos.Y, ad.GridMap),
+			DistanceMul(traveler.a.Pos.X+1, traveler.GoalPos.X, traveler.a.Pos.Y-1, traveler.GoalPos.Y, ad.GridMap),
+		); min {
 		case Up:
 			ad.GridMap.MoveToXYIfAllowed(traveler.a.Pos.X, traveler.a.Pos.Y+1, traveler)
 		case Down:
@@ -160,6 +163,17 @@ func (a *Agent) Init(gd *GridMap) {
 func (t *Traveler) Init(gd *GridMap) {
 	gd.IncSpaceOccupaid(t.a.Pos.X, t.a.Pos.Y)
 	gd.SetXYColor(t.a.Pos.X, t.a.Pos.Y, t.a.color)
+}
+
+func DistanceMul(x1, x2, y1, y2 int, gridMap *GridMap) float32 {
+	if x1 < 0 || x1 >= gridMap.Count {
+		return maxFloat32
+	}
+	if y1 < 0 || y1 >= gridMap.Count {
+		return maxFloat32
+	}
+
+	return float32(DistancePos(x1, x2, y1, y2)) * (1 - gridMap.groundValues[x1*gridMap.Count+y1]*0.2)
 }
 
 func DistancePos(x1, x2, y1, y2 int) int {
