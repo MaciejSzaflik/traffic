@@ -37,6 +37,10 @@ func NewGridMap(vertDistanceSize float32, count int) *GridMap {
 	return gridMap
 }
 
+func (gm *GridMap) GetNeighbours() []int {
+	return nil
+}
+
 func (gm *GridMap) backgroundFromPerlin() {
 	gen := noise.NewNoiseGenerator(int(time.Now().Unix()))
 	gm.groundValues = gen.PerlinArray(gm.Count, gm.Count, 6, 10)
