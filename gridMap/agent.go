@@ -26,6 +26,15 @@ type PointXY struct {
 	X, Y int
 }
 
+func CantorPair(x, y int) int {
+	return ((x+y)*(x+y+1))/2 + y
+}
+
+func CantorDepair(pair int) (int, int) {
+	t := smallMath.FloorToInt((math.Sqrt(float64(8*pair+1)) - 1) / 2)
+	return t*(t+3)/2 - pair, pair - t*(t+1)/2
+}
+
 type Agent struct {
 	Pos   *PointXY
 	color Color

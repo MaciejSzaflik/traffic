@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/MaciejSzaflik/traffic/noise"
+	"github.com/MaciejSzaflik/traffic/smallMath"
 )
 
 type Color struct {
@@ -38,9 +39,9 @@ func NewGridMap(vertDistanceSize float32, count int) *GridMap {
 
 func (gm *GridMap) backgroundFromPerlin() {
 	gen := noise.NewNoiseGenerator(int(time.Now().Unix()))
-	gm.groundValues = gen.PerlinArray(gm.Count, gm.Count, 6, 8)
+	gm.groundValues = gen.PerlinArray(gm.Count, gm.Count, 6, 10)
 	for i := range gm.groundValues {
-		gm.groundValues[i] *= 0.5
+		gm.groundValues[i] = smallMath.Map(gm.groundValues[i], 0, 1, 0.05, 0.4)
 		gm.backgroundColors[i] = Color{gm.groundValues[i], gm.groundValues[i], gm.groundValues[i]}
 	}
 }

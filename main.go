@@ -134,13 +134,14 @@ func programLoop(window *glfw.Window) error {
 	}
 	defer shaderProgram.Delete()
 
-	grid := gridMap.NewGridMap(0.006, 256)
+	gridSize := 100
+	grid := gridMap.NewGridMap(1.5/float32(gridSize), gridSize)
 	grid.VAO = CreateTriangleVAO(grid.Vertices, grid.Indices)
 	grid.VAODirty = false
 
 	fpsCounter := NewFpsCounter(100)
 
-	agentDirector := gridMap.NewAgentDirectorRandom(grid, 1000, 100)
+	agentDirector := gridMap.NewAgentDirectorRandom(grid, 1, 2)
 	mainLoop.addUpdater(agentDirector.Update)
 
 	mainLoop.addUpdater(fpsCounter.update)
